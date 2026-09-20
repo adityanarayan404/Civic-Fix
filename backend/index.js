@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('./config/db');
 const jwt = require('jsonwebtoken');
+const verifyToken = require('./middleware/auth');
 
 const app = express();
 app.use(express.json());
@@ -67,9 +68,10 @@ app.get('/api/issues/:id', async (req, res) => {
   }
 });
 
-app.patch('/api/issues/:id/status', async (req, res) => {
+app.patch('/api/issues/:id/status', verifyToken, async (req, res) => {
   const { id } = req.params;
-  const { status, comment, updated_by } = req.body;
+  const { status, comment } = req.body;
+const updated_by = req.user.id;
 
   const connection = await db.getConnection();
 
