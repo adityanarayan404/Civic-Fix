@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('./config/db');
 const jwt = require('jsonwebtoken');
-const verifyToken = require('./middleware/auth');
+const { verifyToken, requireRole } = require('./middleware/auth');
 
 const app = express();
 app.use(express.json());
@@ -68,7 +68,7 @@ app.get('/api/issues/:id', async (req, res) => {
   }
 });
 
-app.patch('/api/issues/:id/status', verifyToken, async (req, res) => {
+app.patch('/api/issues/:id/status', verifyToken, requireRole('EMPLOYEE', 'ADMIN'), async (req, res) => {
   const { id } = req.params;
   const { status, comment } = req.body;
 const updated_by = req.user.id;
