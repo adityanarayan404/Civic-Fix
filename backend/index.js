@@ -206,6 +206,37 @@ app.post('/api/issues/:id/image', upload.single('image'), async (req, res) => {
   }
 });
 
+app.post('/api/issues/:id/assign', verifyToken, requireRole('ADMIN'), async (req, res) => {
+  const { id } = req.params;
+  const { employee_id } = req.body;
+
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    await connection.query(
+      'INSERT INTO assignments (issue_id, employee_id) VALUES (?, ?)',
+      [id, employee_id]
+    );
+
+    await connection.query(
+      'UPDATE issues SET status = ? WHERE id = ?',
+      ['ASSIGNED', id]
+    );
+
+    await connection.commit();
+
+    res.status(201).json({ message: 'Issue assigned successfully' });
+  } catch (err) {
+    await connection.rollback();
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong' });
+  } finally {
+    connection.release();
+  }
+});
+
 const PORT = 5000;
 
 app.listen(PORT, () => {
