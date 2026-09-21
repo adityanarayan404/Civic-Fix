@@ -1,6 +1,11 @@
 const express = require('express');
 const db = require('./config/db');
 const jwt = require('jsonwebtoken');
+
+const multer = require('multer');
+const { storage } = require('./config/cloudinary');
+const upload = multer({ storage });
+
 const { verifyToken, requireRole } = require('./middleware/auth');
 
 const app = express();
@@ -172,6 +177,28 @@ app.post('/api/auth/login', async (req, res) => {
       message: 'Login successful',
       token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
+
+app.post('/api/issues/:id/image', upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image uploaded' });
+    }
+
+    const imageUrl = req.file.path;
+
+    await db.query('UPDATE issues SET image_url = ? WHERE id = ?', [imageUrl, id]);
+
+    res.json({
+      message: 'Image uploaded successfully',
+      image_url: imageUrl
     });
   } catch (err) {
     console.error(err);
