@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
   res.send('CivicFix backend is alive!');
 });
 
-app.get('/api/users', async (req, res) => {
+app.get('/api/users', verifyToken, requireRole('ADMIN'), async (req, res) => {
   try {
     const [rows] = await db.query('SELECT id, name, email, role FROM users');
     res.json(rows);
