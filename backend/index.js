@@ -24,13 +24,14 @@ app.get('/api/users', async (req, res) => {
     res.status(500).json({ error: 'Something went wrong' });
   }
 });
-app.post('/api/issues', async (req, res) => {
+app.post('/api/issues', verifyToken, async (req, res) => {
   try {
-    const { user_id, type, description, latitude, longitude } = req.body;
+    const { type, description, latitude, longitude } = req.body;
+    const userId = req.user.id;
 
     const [result] = await db.query(
       'INSERT INTO issues (user_id, type, description, latitude, longitude) VALUES (?, ?, ?, ?, ?)',
-      [user_id, type, description, latitude, longitude]
+      [userId, type, description, latitude, longitude]
     );
 
     res.status(201).json({
