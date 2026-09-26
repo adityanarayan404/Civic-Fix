@@ -131,13 +131,13 @@ const bcrypt = require('bcrypt');
 
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await db.query(
       'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-      [name, email, hashedPassword, role || 'CITIZEN']
+      [name, email, hashedPassword, 'CITIZEN']
     );
 
     res.status(201).json({
