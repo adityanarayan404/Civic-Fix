@@ -185,7 +185,28 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.post('/api/issues/:id/image', upload.single('image'), async (req, res) => {
+// Runs before upload.single so rejected requests never reach Cloudinary
+async function requireIssueOwnerOrStaff(req, res, next) {
+  try {
+    const [rows] = await db.query('SELECT user_id FROM issues WHERE id = ?', [req.params.id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Issue not found' });
+    }
+
+    const isOwner = rows[0].user_id === req.user.id;
+    const isStaff = req.user.role === 'EMPLOYEE' || req.user.role === 'ADMIN';
+    if (!isOwner && !isStaff) {
+      return res.status(403).json({ error: 'You can only add images to your own issues' });
+    }
+
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+}
+
+app.post('/api/issues/:id/image', verifyToken, requireIssueOwnerOrStaff, upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
 
