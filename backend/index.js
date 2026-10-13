@@ -99,14 +99,39 @@ app.get('/api/issues/:id', async (req, res) => {
   }
 });
 
+// The only allowed next step for each status. VERIFIED -> ASSIGNED happens through /assign.
+const nextStatus = {
+  REPORTED: 'VERIFIED',
+  ASSIGNED: 'IN_PROGRESS',
+  IN_PROGRESS: 'RESOLVED'
+};
+
 app.patch('/api/issues/:id/status', verifyToken, requireRole('EMPLOYEE', 'ADMIN'), async (req, res) => {
   const { id } = req.params;
   const { status, comment } = req.body;
-const updated_by = req.user.id;
+  const updated_by = req.user.id;
 
   const connection = await db.getConnection();
 
   try {
+    const [issues] = await connection.query('SELECT status, assigned_to FROM issues WHERE id = ?', [id]);
+    if (issues.length === 0) {
+      return res.status(404).json({ error: 'Issue not found' });
+    }
+
+    const currentStatus = issues[0].status;
+    if (nextStatus[currentStatus] !== status) {
+      return res.status(400).json({ error: `Cannot change status from ${currentStatus} to ${status}` });
+    }
+
+    if (status === 'VERIFIED' && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Only admins can verify issues' });
+    }
+
+    if (req.user.role === 'EMPLOYEE' && issues[0].assigned_to !== req.user.id) {
+      return res.status(403).json({ error: 'You can only update issues assigned to you' });
+    }
+
     await connection.beginTransaction();
 
     await connection.query(
@@ -271,9 +296,13 @@ app.post('/api/issues/:id/assign', verifyToken, requireRole('ADMIN'), async (req
       return res.status(404).json({ error: 'Issue not found' });
     }
 
-    const [employees] = await connection.query('SELECT role FROM users WHERE id = ?', [employee_id]);
+    const [employees] = await connection.query('SELECT name, role FROM users WHERE id = ?', [employee_id]);
     if (employees.length === 0 || employees[0].role !== 'EMPLOYEE') {
       return res.status(400).json({ error: 'employee_id must belong to an employee' });
+    }
+
+    if (issues[0].status === 'REPORTED') {
+      return res.status(400).json({ error: 'Issue must be verified before it can be assigned' });
     }
 
     if (issues[0].status === 'RESOLVED') {
@@ -294,6 +323,11 @@ app.post('/api/issues/:id/assign', verifyToken, requireRole('ADMIN'), async (req
     await connection.query(
       'UPDATE issues SET status = ?, assigned_to = ? WHERE id = ?',
       ['ASSIGNED', employee_id, id]
+    );
+
+    await connection.query(
+      'INSERT INTO issue_updates (issue_id, updated_by, status, comment) VALUES (?, ?, ?, ?)',
+      [id, req.user.id, 'ASSIGNED', `Assigned to ${employees[0].name}`]
     );
 
     await connection.commit();
