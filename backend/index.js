@@ -57,6 +57,19 @@ app.get('/api/issues', async (req, res) => {
     res.status(500).json({ error: 'Something went wrong' });
   }
 });
+// Must be above /api/issues/:id, otherwise Express treats "mine" as an id
+app.get('/api/issues/mine', verifyToken, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM issues WHERE user_id = ? ORDER BY created_at DESC',
+      [req.user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
 app.get('/api/issues/:id', async (req, res) => {
   try {
     const { id } = req.params;
