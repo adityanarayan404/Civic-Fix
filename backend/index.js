@@ -215,8 +215,14 @@ app.post('/api/issues/:id/image', verifyToken, requireIssueOwnerOrStaff, upload.
     }
 
     const imageUrl = req.file.path;
+    const isStaff = req.user.role === 'EMPLOYEE' || req.user.role === 'ADMIN';
 
-    await db.query('UPDATE issues SET image_url = ? WHERE id = ?', [imageUrl, id]);
+    // Staff upload the "after" photo, so the citizen's original photo is never overwritten
+    if (isStaff) {
+      await db.query('UPDATE issues SET resolved_image_url = ? WHERE id = ?', [imageUrl, id]);
+    } else {
+      await db.query('UPDATE issues SET image_url = ? WHERE id = ?', [imageUrl, id]);
+    }
 
     res.json({
       message: 'Image uploaded successfully',
