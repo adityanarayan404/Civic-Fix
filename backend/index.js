@@ -70,6 +70,18 @@ app.get('/api/issues/mine', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Something went wrong' });
   }
 });
+app.get('/api/issues/assigned', verifyToken, requireRole('EMPLOYEE'), async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM issues WHERE assigned_to = ? ORDER BY created_at DESC',
+      [req.user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+});
 app.get('/api/issues/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -254,6 +266,24 @@ app.post('/api/issues/:id/assign', verifyToken, requireRole('ADMIN'), async (req
   const connection = await db.getConnection();
 
   try {
+    const [issues] = await connection.query('SELECT status, assigned_to FROM issues WHERE id = ?', [id]);
+    if (issues.length === 0) {
+      return res.status(404).json({ error: 'Issue not found' });
+    }
+
+    const [employees] = await connection.query('SELECT role FROM users WHERE id = ?', [employee_id]);
+    if (employees.length === 0 || employees[0].role !== 'EMPLOYEE') {
+      return res.status(400).json({ error: 'employee_id must belong to an employee' });
+    }
+
+    if (issues[0].status === 'RESOLVED') {
+      return res.status(400).json({ error: 'Resolved issues cannot be reassigned' });
+    }
+
+    if (issues[0].assigned_to === Number(employee_id)) {
+      return res.status(409).json({ error: 'Issue is already assigned to this employee' });
+    }
+
     await connection.beginTransaction();
 
     await connection.query(
@@ -262,8 +292,8 @@ app.post('/api/issues/:id/assign', verifyToken, requireRole('ADMIN'), async (req
     );
 
     await connection.query(
-      'UPDATE issues SET status = ? WHERE id = ?',
-      ['ASSIGNED', id]
+      'UPDATE issues SET status = ?, assigned_to = ? WHERE id = ?',
+      ['ASSIGNED', employee_id, id]
     );
 
     await connection.commit();
