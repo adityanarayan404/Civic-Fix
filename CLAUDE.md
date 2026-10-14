@@ -292,6 +292,7 @@ Test uploads have created extra images in Cloudinary (`civicfix/` folder). They 
 
 - **README.md** at the repo root: professional, recruiter-facing, one emoji per section heading only. It has the Problem/Solution, features, tech stack, and Mermaid diagrams (architecture, lifecycle, ER), plus security and roadmap sections. It deliberately has **no code, API tables or setup steps** (his choice). The tagline says "full-stack" while the frontend is in progress; the status note clarifies this.
 - The README was uploaded through the GitHub website and then pulled locally.
+- **14 Oct 2026 README refresh:** removed the stray upload link, added Vite/Tailwind badges, the lifecycle rules (with transition labels in the diagram), My Issues/My Tasks, before/after photos, `resolved_image_url`/`assigned_to` in the ER diagram, CORS and 400/404/409 in Security, and an updated roadmap. Update the README's roadmap and status note as phases complete.
 
 ---
 
@@ -351,8 +352,6 @@ Every phase ends with something clickable in the browser and a commit. **Phases 
 - Issue creation doesn't insert a REPORTED row into `issue_updates`; the timeline starts at VERIFIED.
 - `require('dotenv').config()` only runs in `config/db.js` and `config/cloudinary.js`; `JWT_SECRET` works because `db.js` is required first. Move it to the top of `index.js` to make this explicit.
 - `const bcrypt = require('bcrypt')` sits in the middle of `index.js`; move it to the top with the other requires.
-- README line 1 has a stray `[README.md](https://github.com/user-attachments/...)` link left over from the GitHub upload. Delete it.
-- README roadmap/features could mention the new lifecycle rules and My Issues/My Tasks.
 - Split `index.js` into route/controller modules.
 - Automated tests.
 - `CivicFix_Project_Context.md` (his older handoff doc) is outdated. This CLAUDE.md supersedes it.
