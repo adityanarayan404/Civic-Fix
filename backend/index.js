@@ -1,4 +1,6 @@
 const express = require('express');
+const cors = require('cors');
+
 const db = require('./config/db');
 const jwt = require('jsonwebtoken');
 
@@ -9,6 +11,8 @@ const upload = multer({ storage });
 const { verifyToken, requireRole } = require('./middleware/auth');
 
 const app = express();
+app.use(cors({ origin: 'http://localhost:5173' }));
+
 app.use(express.json());
 
 app.get('/', (req, res) => {
