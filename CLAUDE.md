@@ -2,7 +2,7 @@
 
 This file gives Claude Code full context on the CivicFix project: what it is, what is built, what changed recently, how the developer wants to work, and what comes next. Read it fully before making changes.
 
-Last updated: 13 Oct 2026
+Last updated: 14 Oct 2026
 
 ---
 
@@ -34,10 +34,14 @@ Last updated: 13 Oct 2026
 - Suggest typing (not pasting) when a concept is new; pasting is fine for config files.
 - Styling: **Tailwind CSS**. Explain each new class the first time it appears.
 - HTTP: **fetch** (no Axios), with one small helper that adds the token.
+- Exceptions so far: twice on 14 Oct he asked "fix it for me" (a case-only folder/file rename, and a missing `function App() {` wrapper), and Claude did it and explained the change. **Open question to settle next session:** make it the rule that "he tries first; if stuck and says 'fix it', Claude fixes and explains"?
+- Naming: component files are PascalCase and match the component (`Home.jsx` → `function Home`); folders are lowercase (`pages`, `components`). Windows ignores case but Vercel (Linux) doesn't, so mismatched import casing breaks only in production.
+- Debugging tip already taught: a blank page = a crash; check the browser console (F12) or VS Code's Problems tab.
 
 ### Terminal and Git (Windows)
 - His VS Code terminal is **Windows PowerShell 5.1**: `&&` does **not** work. Give commands on **separate lines**, one per code block.
-- He usually has two terminals: **terminal 1 runs the server** from `backend/`, **terminal 2 is for git**. Check which folder he is in before giving paths: from `backend/` it is `git add index.js`, from the repo root it is `git add backend/index.js`. Prefer explicit paths over `git add .` (the untracked `frontend/` folder would get swept in).
+- He uses three terminals: **terminal 1** runs the backend (`npm run dev` in `backend/`), **terminal 2** runs the frontend (`npm run dev` in `frontend/`), **terminal 3** is for git in the repo root. Check which folder he is in before giving paths: from `backend/` it is `git add index.js`, from the repo root it is `git add backend/index.js`. Prefer explicit paths (`git add frontend`, `git add backend/index.js`) over `git add .`.
+- On Windows, `git add` prints "LF will be replaced by CRLF" warnings. They are harmless (line endings only).
 - After a meaningful change, end with a ready-to-use commit, e.g.:
   ```
   git add backend/index.js
@@ -72,9 +76,9 @@ GitHub: https://github.com/adityanarayan404/Civic-Fix (public, branch `main`)
 | Auth | JWT (`jsonwebtoken`) + `bcrypt` | Complete |
 | Images | Cloudinary + Multer (`multer-storage-cloudinary`) | Complete |
 | Dev tooling | nodemon (`npm run dev`) | Installed |
-| Frontend | React with **Vite** (plain React, **not** Next.js: no SSR/SEO needed) | Starting now |
-| Styling | **Tailwind CSS** | Planned |
-| Routing | React Router | Planned |
+| Frontend | React 19 with **Vite 8** (plain React, **not** Next.js: no SSR/SEO needed) | In progress |
+| Styling | **Tailwind CSS v4** via the `@tailwindcss/vite` plugin; `src/index.css` is just `@import "tailwindcss";` | Installed |
+| Routing | **React Router v8** (package `react-router`; import from `'react-router'`, not `react-router-dom`) | Installed |
 | Auth state | Context API (not Redux; app is small) | Planned |
 | HTTP | **fetch** (built-in) | Planned |
 | Maps | Mapbox or Google Maps (undecided) | Planned |
@@ -100,9 +104,18 @@ civic fix/                     ← repo root (Git initialized here)
     .env                       ← secrets (gitignored)
     .gitignore                 ← node_modules, .env
     package.json / package-lock.json   ← scripts: "start" (node), "dev" (nodemon)
-  frontend/                    ← Vite React starter template (untouched demo code). Committed and pushed by
-                                 accident inside commit 73ed488 (the assigned_to fix); harmless, left as is.
-                                 Has its own .gitignore (node_modules excluded).
+  frontend/                    ← Vite + React app (own .gitignore, node_modules excluded)
+    index.html                 ← <title>CivicFix</title>; public/favicon.svg is still the Vite logo (swap in Phase 7)
+    vite.config.js             ← plugins: [react(), tailwindcss()]
+    src/
+      main.jsx                 ← wraps <App /> in <BrowserRouter>
+      App.jsx                  ← <Navbar /> + <main className="p-6"> with <Routes>: /, /issues, /login, /register, * (NotFound)
+      index.css                ← @import "tailwindcss";
+      components/
+        Navbar.jsx             ← blue bar, <Link>s to Issues/Login/Register (not role-based yet)
+      pages/
+        Home.jsx, Issues.jsx, Login.jsx, Register.jsx   ← placeholders (just an <h1>)
+        NotFound.jsx           ← "Page not found" + link home
 ```
 
 Local path on his Windows machine: `C:\Users\adity\Desktop\civic fix\` (the space in the name means paths need quotes in the terminal).
@@ -284,7 +297,14 @@ Test uploads have created extra images in Cloudinary (`civicfix/` folder). They 
 
 ## 10. Current status / where we are
 
-**Phase: backend gaps closed (13 Oct 2026); frontend about to start.**
+**Phase: Phase 0 and Phase 1 done and pushed (14 Oct 2026). Next: design references, then Phase 2 (Auth).**
+
+### Where we stopped (14 Oct 2026)
+- Phase 0 ✅ Tailwind set up, demo removed, backend CORS (`app.use(cors({ origin: 'http://localhost:5173' }))` right after `const app = express();`). Commits `8db2f9f`, `3ae1c15`.
+- Phase 1 ✅ React Router, Navbar, placeholder pages, 404 route. Commit `30857f8`.
+- Small formatting nits left from review: `main.jsx` `<App />` indentation, `App.jsx` extra blank lines and over-indented `*` route (fix with Shift + Alt + F). Semicolons: keep them (backend style); Vite-generated files lack them. Prettier could be added later.
+- **Next session starts with:** Aditya shares design screenshots from sites he likes (with what he likes about each), ideally both a mobile citizen screen and an admin dashboard. Claude then proposes 2–3 directions based on them; he picks one; then Phase 2.
+- Also settle the "fix it" rule (see Working agreement).
 
 Frontend planning (agreed): **one React app** with role-based navbar/pages, not separate apps per role.
 
@@ -298,7 +318,7 @@ Frontend planning (agreed): **one React app** with role-based navbar/pages, not 
 The **Issue detail page is shared by all roles**, with extra panels depending on the role.
 
 ### Frontend plan (agreed 13 Oct 2026): phases, one working screen at a time
-Every phase ends with something clickable in the browser and a commit. **Next session starts at Phase 0.**
+Every phase ends with something clickable in the browser and a commit. **Phases 0 and 1 are done.**
 
 | # | Phase | What gets built | React concepts introduced |
 |---|---|---|---|
@@ -311,9 +331,9 @@ Every phase ends with something clickable in the browser and a commit. **Next se
 | 6 | **Admin** | Dashboard (filters, counts), verify + assign panel (employee dropdown from `GET /api/users` filtered to EMPLOYEE). **Add the priority route here** (Gap #3, deferred on purpose): `PATCH /api/issues/:id/priority`, admin only, validate LOW/MEDIUM/HIGH/CRITICAL | `.filter()`, API-driven dropdowns |
 | 7 | **Polish** | Design pass, map view (Mapbox or Google Maps, undecided), deployment | — |
 
-**Backend CORS (Phase 0):** `cors` is **not** installed yet. Run `npm install cors` in `backend/` and add `app.use(cors({ origin: 'http://localhost:5173' }))` near the top of `index.js`. Otherwise the browser blocks frontend requests to port 5000.
+**Backend CORS:** done (Phase 0). When deploying, add the Vercel URL to the allowed `origin`. CORS has not been exercised by a real `fetch` yet; the first test is the login form in Phase 2.
 
-**Design:** show 2–3 reference directions **after Phase 1** (once he knows what a component is).
+**Design:** Aditya will share reference screenshots first; then show 2–3 directions based on them, **before Phase 2**.
 
 ### UI/design approach (agreed)
 - Show 2–3 reference directions instead of designing from a blank slate. He decides color (civic blue/green), layout (cards vs tables) and tone.
