@@ -160,6 +160,42 @@ app.patch('/api/issues/:id/status', verifyToken, requireRole('EMPLOYEE', 'ADMIN'
   }
 });
 
+app.patch('/api/issues/:id/priority', verifyToken, requireRole('ADMIN'), async (req, res) => {
+  const { id } = req.params;
+  const { priority } = req.body;
+
+  const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+  if (!priority || !validPriorities.includes(priority)) {
+    return res.status(400).json({ error: `Priority must be one of: ${validPriorities.join(', ')}` });
+  }
+
+  const connection = await db.getConnection();
+
+  try {
+    const [issue] = await connection.query('SELECT * FROM issues WHERE id = ?', [id]);
+    if (issue.length === 0) {
+      return res.status(404).json({ error: 'Issue not found' });
+    }
+
+    await connection.beginTransaction();
+
+    await connection.query(
+      'UPDATE issues SET priority = ? WHERE id = ?',
+      [priority, id]
+    );
+
+    await connection.commit();
+
+    res.json({ message: 'Priority updated successfully' });
+  } catch (err) {
+    await connection.rollback();
+    console.error(err);
+    res.status(500).json({ error: 'Something went wrong' });
+  } finally {
+    connection.release();
+  }
+});
+
 app.get('/api/issues/:id/history', async (req, res) => {
   try {
     const { id } = req.params;
