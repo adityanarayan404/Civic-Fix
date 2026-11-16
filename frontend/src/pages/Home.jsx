@@ -21,7 +21,7 @@ function Home() {
       />
       <div className="absolute inset-0 bg-black/45" />
 
-      <div className="relative w-full max-w-6xl mx-auto px-6 pt-24 pb-10 grid lg:grid-cols-[1fr_380px] gap-12 items-center">
+      <div className="relative w-full max-w-6xl mx-auto px-6 pt-24 pb-10 grid lg:grid-cols-[1fr_380px] gap-12 items-center fade-up">
 
         {/* left: headline + the three steps */}
         <div className="text-white">
@@ -53,16 +53,16 @@ function Home() {
         </div>
 
         {/* right: login card, visible without scrolling */}
-        <div className="bg-white rounded-xl shadow-xl p-8">
+        <div className="bg-white dark:bg-stone-900 rounded-xl shadow-xl p-8">
           {user ? (
             <>
               <h2 className="font-serif text-3xl font-medium mb-2">Welcome back</h2>
-              <p className="text-stone-500 text-sm mb-8">
-                Logged in as <span className="text-stone-900 font-medium">{user.name}</span>
+              <p className="text-stone-500 dark:text-stone-400 text-sm mb-8">
+                Logged in as <span className="text-stone-900 dark:text-white font-medium">{user.name}</span>
               </p>
               <Link
                 to="/issues"
-                className="block w-full bg-stone-900 text-white text-sm font-medium rounded-md py-3 text-center hover:bg-stone-700 transition-colors"
+                className="block w-full bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-sm font-medium rounded-md py-3 text-center hover:bg-stone-700 dark:hover:bg-stone-200 transition-colors"
               >
                 Browse Issues
               </Link>
@@ -70,7 +70,7 @@ function Home() {
           ) : (
             <>
               <h2 className="font-serif text-3xl font-medium mb-2">User Login</h2>
-              <p className="text-stone-500 text-sm mb-6">
+              <p className="text-stone-500 dark:text-stone-400 text-sm mb-6">
                 Access your account to report and track issues.
               </p>
               <LoginForm />

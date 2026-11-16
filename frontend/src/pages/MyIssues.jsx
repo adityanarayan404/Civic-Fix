@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../api';
 import IssueCard from '../components/IssueCard';
+import SkeletonCard from '../components/SkeletonCard';
 
 function MyIssues() {
   const { user } = useAuth();
@@ -31,27 +32,33 @@ function MyIssues() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 pt-28 pb-16 px-6">
-      <div className="max-w-6xl mx-auto">
-        <p className="text-[11px] uppercase tracking-[0.35em] text-stone-500 mb-4">
+    <div className="min-h-screen bg-stone-100 dark:bg-stone-950 pt-28 pb-16 px-6">
+      <div className="max-w-6xl mx-auto fade-up">
+        <p className="text-[11px] uppercase tracking-[0.35em] text-stone-500 dark:text-stone-400 mb-4">
           Your reports
         </p>
         <h1 className="font-serif text-4xl font-medium mb-10">My Issues</h1>
 
-        {loading && <p className="text-stone-500">Loading your issues...</p>}
+        {loading && (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((n) => (
+              <SkeletonCard key={n} />
+            ))}
+          </div>
+        )}
 
         {error && (
-          <p className="border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3 rounded-md max-w-md">
+          <p className="border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 text-sm px-4 py-3 rounded-md max-w-md">
             {error}
           </p>
         )}
 
         {!loading && !error && issues.length === 0 && (
-          <div className="text-stone-500">
+          <div className="text-stone-500 dark:text-stone-400">
             <p className="mb-4">You haven't reported any issues yet.</p>
             <Link
               to="/issues"
-              className="text-stone-900 underline underline-offset-4 hover:text-stone-600 text-sm"
+              className="text-stone-900 dark:text-white underline underline-offset-4 hover:text-stone-600 dark:hover:text-stone-300 text-sm"
             >
               See what others have reported
             </Link>

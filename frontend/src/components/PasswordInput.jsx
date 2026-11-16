@@ -11,13 +11,13 @@ function PasswordInput({ value, onChange, minLength }) {
         onChange={onChange}
         required
         minLength={minLength}
-        className="w-full border border-stone-300 rounded-md px-4 py-2.5 pr-12 text-stone-900 focus:outline-none focus:border-stone-900 transition-colors"
+        className="w-full bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md px-4 py-2.5 pr-12 text-stone-900 dark:text-stone-100 focus:outline-none focus:border-stone-900 dark:focus:border-stone-400 transition-colors"
       />
       <button
         type="button"
         onClick={() => setShow(!show)}
         aria-label={show ? 'Hide password' : 'Show password'}
-        className="absolute inset-y-0 right-0 flex items-center px-3 text-stone-400 hover:text-stone-900 transition-colors"
+        className="absolute inset-y-0 right-0 flex items-center px-3 text-stone-400 hover:text-stone-900 dark:hover:text-white transition-colors"
       >
         {show ? (
           // open eye = password is visible

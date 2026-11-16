@@ -86,29 +86,36 @@ function ReportIssue() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 pt-28 pb-16 px-6">
-      <div className="max-w-xl mx-auto">
-        <p className="text-[11px] uppercase tracking-[0.35em] text-stone-500 mb-4">
+    <div className="relative min-h-screen pt-28 pb-16 px-6 overflow-hidden">
+      <img
+        src="/report-bg.jpg"
+        alt="Road crew laying fresh asphalt in the hills"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-black/45" />
+
+      <div className="relative max-w-xl mx-auto fade-up">
+        <p className="text-[11px] uppercase tracking-[0.35em] text-white/80 mb-4">
           New report
         </p>
-        <h1 className="font-serif text-4xl font-medium mb-8">Report an issue</h1>
+        <h1 className="font-serif text-4xl font-medium mb-8 text-white">Report an issue</h1>
 
-        <div className="bg-white border border-stone-200 rounded-xl shadow-sm p-8">
+        <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl shadow-sm p-8">
           {error && (
-            <p className="border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3 mb-5 rounded-md">
+            <p className="border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 text-sm px-4 py-3 mb-5 rounded-md">
               {error}
             </p>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
                 Type of issue
               </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="w-full border border-stone-300 rounded-md px-4 py-2.5 text-stone-900 bg-white focus:outline-none focus:border-stone-900 transition-colors"
+                className="w-full bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md px-4 py-2.5 text-stone-900 dark:text-stone-100 bg-white focus:outline-none focus:border-stone-900 dark:focus:border-stone-400 transition-colors"
               >
                 {issueTypes.map((t) => (
                   <option key={t.value} value={t.value}>
@@ -119,7 +126,7 @@ function ReportIssue() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
                 Description
               </label>
               <textarea
@@ -128,24 +135,24 @@ function ReportIssue() {
                 required
                 rows={4}
                 placeholder="Where exactly is it? How long has it been there? Anything the staff should know."
-                className="w-full border border-stone-300 rounded-md px-4 py-2.5 text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors resize-none"
+                className="w-full bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md px-4 py-2.5 text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-stone-900 dark:focus:border-stone-400 transition-colors resize-none"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
                 Location
               </label>
               <button
                 type="button"
                 onClick={handleUseMyLocation}
                 disabled={locating}
-                className="w-full border border-stone-300 rounded-md py-2.5 text-sm font-medium text-stone-700 hover:border-stone-900 hover:text-stone-900 transition-colors disabled:opacity-50 mb-3"
+                className="w-full border border-stone-300 dark:border-stone-700 rounded-md py-2.5 text-sm font-medium text-stone-700 dark:text-stone-300 hover:border-stone-900 hover:text-stone-900 dark:hover:border-white dark:hover:text-white transition-colors disabled:opacity-50 mb-3"
               >
                 {locating ? 'Getting your location...' : '📍 Use my current location'}
               </button>
               {locationError && (
-                <p className="text-sm text-red-600 mb-3">{locationError}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mb-3">{locationError}</p>
               )}
               <div className="grid grid-cols-2 gap-3">
                 <input
@@ -154,7 +161,7 @@ function ReportIssue() {
                   value={latitude}
                   onChange={(e) => setLatitude(e.target.value)}
                   placeholder="Latitude"
-                  className="w-full border border-stone-300 rounded-md px-4 py-2.5 text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors"
+                  className="w-full bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md px-4 py-2.5 text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-stone-900 dark:focus:border-stone-400 transition-colors"
                 />
                 <input
                   type="number"
@@ -162,26 +169,26 @@ function ReportIssue() {
                   value={longitude}
                   onChange={(e) => setLongitude(e.target.value)}
                   placeholder="Longitude"
-                  className="w-full border border-stone-300 rounded-md px-4 py-2.5 text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition-colors"
+                  className="w-full bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 rounded-md px-4 py-2.5 text-stone-900 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-stone-900 dark:focus:border-stone-400 transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">
+              <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1.5">
                 Photo <span className="text-stone-400 font-normal">(optional)</span>
               </label>
               <input
                 type="file"
                 accept="image/jpeg,image/png"
                 onChange={handlePhotoChange}
-                className="w-full text-sm text-stone-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:bg-stone-900 file:text-white file:text-sm file:font-medium hover:file:bg-stone-700 file:transition-colors file:cursor-pointer"
+                className="w-full text-sm text-stone-600 dark:text-stone-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:bg-stone-900 dark:file:bg-white file:text-white dark:file:text-stone-900 file:text-sm file:font-medium hover:file:bg-stone-700 dark:hover:file:bg-stone-200 file:transition-colors file:cursor-pointer"
               />
               {preview && (
                 <img
                   src={preview}
                   alt="Selected"
-                  className="mt-3 w-full aspect-[16/9] object-cover rounded-lg border border-stone-200"
+                  className="mt-3 w-full aspect-[16/9] object-cover rounded-lg border border-stone-200 dark:border-stone-700"
                 />
               )}
             </div>
@@ -189,7 +196,7 @@ function ReportIssue() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-stone-900 text-white text-sm font-medium rounded-md py-3 hover:bg-stone-700 transition-colors disabled:opacity-50"
+              className="w-full bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-sm font-medium rounded-md py-3 hover:bg-stone-700 dark:hover:bg-stone-200 transition-colors disabled:opacity-50"
             >
               {loading ? 'Submitting report...' : 'Submit report'}
             </button>

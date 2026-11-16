@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../api';
 import IssueCard from '../components/IssueCard';
+import SkeletonCard from '../components/SkeletonCard';
 
 const statusOptions = ['ALL', 'REPORTED', 'VERIFIED', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED'];
 const typeOptions = ['ALL', 'POTHOLE', 'STREET_LIGHT', 'GARBAGE', 'WATER_LEAKAGE'];
@@ -87,9 +88,9 @@ function Issues() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-100 pt-28 pb-16 px-6">
-      <div className="max-w-6xl mx-auto">
-        <p className="text-[11px] uppercase tracking-[0.35em] text-stone-500 mb-4">
+    <div className="min-h-screen bg-stone-100 dark:bg-stone-950 pt-28 pb-16 px-6">
+      <div className="max-w-6xl mx-auto fade-up">
+        <p className="text-[11px] uppercase tracking-[0.35em] text-stone-500 dark:text-stone-400 mb-4">
           Community reports
         </p>
         <h1 className="font-serif text-4xl font-medium mb-8">All Issues</h1>
@@ -99,7 +100,7 @@ function Issues() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-stone-300 rounded-md px-3 py-2 text-sm text-stone-700 bg-white focus:outline-none focus:border-stone-900"
+            className="border border-stone-300 dark:border-stone-700 rounded-md px-3 py-2 text-sm text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-900 focus:outline-none focus:border-stone-900 dark:focus:border-stone-400"
           >
             {statusOptions.map((status) => (
               <option key={status} value={status}>
@@ -111,7 +112,7 @@ function Issues() {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="border border-stone-300 rounded-md px-3 py-2 text-sm text-stone-700 bg-white focus:outline-none focus:border-stone-900"
+            className="border border-stone-300 dark:border-stone-700 rounded-md px-3 py-2 text-sm text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-900 focus:outline-none focus:border-stone-900 dark:focus:border-stone-400"
           >
             {typeOptions.map((type) => (
               <option key={type} value={type}>
@@ -125,15 +126,15 @@ function Issues() {
             disabled={locating}
             className={`rounded-md px-4 py-2 text-sm font-medium border transition-colors disabled:opacity-50 ${
               userLocation
-                ? 'bg-stone-900 text-white border-stone-900 hover:bg-stone-700'
-                : 'bg-white text-stone-700 border-stone-300 hover:border-stone-900 hover:text-stone-900'
+                ? 'bg-stone-900 dark:bg-white text-white dark:text-stone-900 border-stone-900 dark:border-white hover:bg-stone-700 dark:hover:bg-stone-200'
+                : 'bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-stone-700 hover:border-stone-900 hover:text-stone-900 dark:hover:border-white dark:hover:text-white'
             }`}
           >
             {locating ? 'Locating...' : userLocation ? '📍 Near me ✕' : '📍 Near me'}
           </button>
 
           {userLocation && (
-            <span className="text-xs text-stone-500">sorted by distance from you</span>
+            <span className="text-xs text-stone-500 dark:text-stone-400">sorted by distance from you</span>
           )}
         </div>
 
@@ -141,20 +142,26 @@ function Issues() {
           <p className="text-sm text-red-600 mb-6">{locationError}</p>
         )}
 
-        {loading && <p className="text-stone-500">Loading issues...</p>}
+        {loading && (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((n) => (
+              <SkeletonCard key={n} />
+            ))}
+          </div>
+        )}
 
         {error && (
-          <p className="border border-red-200 bg-red-50 text-red-700 text-sm px-4 py-3 rounded-md max-w-md">
+          <p className="border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 text-sm px-4 py-3 rounded-md max-w-md">
             {error}
           </p>
         )}
 
         {!loading && !error && issues.length === 0 && (
-          <p className="text-stone-500">No issues reported yet.</p>
+          <p className="text-stone-500 dark:text-stone-400">No issues reported yet.</p>
         )}
 
         {!loading && !error && issues.length > 0 && visibleIssues.length === 0 && (
-          <p className="text-stone-500">No issues match your filters.</p>
+          <p className="text-stone-500 dark:text-stone-400">No issues match your filters.</p>
         )}
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
