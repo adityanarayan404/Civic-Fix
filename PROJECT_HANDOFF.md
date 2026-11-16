@@ -1,5 +1,7 @@
 # CivicFix — Project Context (Handoff for Claude)
 
+> **Note (16 Nov 2026):** this snapshot is from 8 Nov. Since then, frontend Phases 2–5 were completed (auth with role tabs, portal landing, issue browsing with filters + near-me sort, reporting with GPS/photo, employee workflow, dark mode). CLAUDE.md is the up-to-date source of truth.
+
 You are helping Aditya Narayan, a 3rd-year B.Tech CSE student, build **CivicFix**: a civic issue reporting and tracking platform. It is a portfolio project for SWE internship interviews, so code must stay **simple and explainable** — he must be able to explain every line in an interview.
 
 GitHub: https://github.com/adityanarayan404/Civic-Fix (branch `main`)

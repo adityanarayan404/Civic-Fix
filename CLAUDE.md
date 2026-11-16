@@ -2,7 +2,7 @@
 
 This file gives Claude Code full context on the CivicFix project: what it is, what is built, what changed recently, how the developer wants to work, and what comes next. Read it fully before making changes.
 
-Last updated: 14 Oct 2026
+Last updated: 16 Nov 2026
 
 ---
 
@@ -35,6 +35,7 @@ Last updated: 14 Oct 2026
 - Styling: **Tailwind CSS**. Explain each new class the first time it appears.
 - HTTP: **fetch** (no Axios), with one small helper that adds the token.
 - Exceptions so far: twice on 14 Oct he asked "fix it for me" (a case-only folder/file rename, and a missing `function App() {` wrapper), and Claude did it and explained the change. **Open question to settle next session:** make it the rule that "he tries first; if stuck and says 'fix it', Claude fixes and explains"?
+- **(16 Nov 2026) Superseded for the frontend:** Aditya decided Claude now **builds all frontend code directly** — he picks the design direction (reference screenshots/sites) and reviews the result in the browser; no more typing-and-learning loops for React. The explain-first/he-types rule applies to the **backend only**, which he must still be able to explain line by line.
 - Naming: component files are PascalCase and match the component (`Home.jsx` → `function Home`); folders are lowercase (`pages`, `components`). Windows ignores case but Vercel (Linux) doesn't, so mismatched import casing breaks only in production.
 - Debugging tip already taught: a blank page = a crash; check the browser console (F12) or VS Code's Problems tab.
 
@@ -76,11 +77,11 @@ GitHub: https://github.com/adityanarayan404/Civic-Fix (public, branch `main`)
 | Auth | JWT (`jsonwebtoken`) + `bcrypt` | Complete |
 | Images | Cloudinary + Multer (`multer-storage-cloudinary`) | Complete |
 | Dev tooling | nodemon (`npm run dev`) | Installed |
-| Frontend | React 19 with **Vite 8** (plain React, **not** Next.js: no SSR/SEO needed) | In progress |
+| Frontend | React 19 with **Vite 8** (plain React, **not** Next.js: no SSR/SEO needed) | Citizen + employee sides complete |
 | Styling | **Tailwind CSS v4** via the `@tailwindcss/vite` plugin; `src/index.css` is just `@import "tailwindcss";` | Installed |
 | Routing | **React Router v8** (package `react-router`; import from `'react-router'`, not `react-router-dom`) | Installed |
-| Auth state | Context API (not Redux; app is small) | Planned |
-| HTTP | **fetch** (built-in) | Planned |
+| Auth state | Context API (not Redux; app is small) | Done (`AuthContext` + localStorage) |
+| HTTP | **fetch** (built-in) | Done (`src/api.js`: `apiFetch` JSON + JWT, `apiUpload` FormData) |
 | Maps | Mapbox or Google Maps (undecided) | Planned |
 | Deploy | Vercel (frontend) + cloud host and cloud MySQL (backend) | Not started |
 
@@ -105,17 +106,29 @@ civic fix/                     ← repo root (Git initialized here)
     .gitignore                 ← node_modules, .env
     package.json / package-lock.json   ← scripts: "start" (node), "dev" (nodemon)
   frontend/                    ← Vite + React app (own .gitignore, node_modules excluded)
-    index.html                 ← <title>CivicFix</title>; public/favicon.svg is still the Vite logo (swap in Phase 7)
+    index.html                 ← <title>CivicFix</title>, custom favicon.svg (dark square, serif C, amber dot)
     vite.config.js             ← plugins: [react(), tailwindcss()]
+    public/
+      hero.jpg                 ← landing background (highway in hills, compressed to ~370KB)
+      report-bg.jpg            ← Report Issue background (road crew, ~435KB)
     src/
-      main.jsx                 ← wraps <App /> in <BrowserRouter>
-      App.jsx                  ← <Navbar /> + <main className="p-6"> with <Routes>: /, /issues, /login, /register, * (NotFound)
-      index.css                ← @import "tailwindcss";
+      main.jsx                 ← <BrowserRouter> + <AuthProvider>; applies saved dark theme before render
+      App.jsx                  ← routes: /, /issues, /issues/:id, /my-issues, /report, /my-tasks, /login, /register, *
+      api.js                   ← apiFetch (JSON + Authorization header) and apiUpload (FormData, no Content-Type)
+      index.css                ← tailwind + Google Fonts (Cormorant Garamond serif, Inter sans) + dark custom-variant (.dark on <html>) + fade-up animation
+      context/
+        AuthContext.jsx        ← user state, login/logout, token + user in localStorage
       components/
-        Navbar.jsx             ← blue bar, <Link>s to Issues/Login/Register (not role-based yet)
+        Navbar.jsx             ← role-based links (citizen: My Issues/Report; employee: My Tasks) + dark-mode toggle
+        LoginForm.jsx          ← shared by Home card and /login; role tabs (Citizen/Employee/Admin) with post-login role check
+        PasswordInput.jsx      ← eye toggle (open eye = visible)
+        IssueCard.jsx, SkeletonCard.jsx, StatusBadge.jsx
+        EmployeePanel.jsx      ← staff panel on issue detail (start work / resolve + comment + after photo)
       pages/
-        Home.jsx, Issues.jsx, Login.jsx, Register.jsx   ← placeholders (just an <h1>)
-        NotFound.jsx           ← "Page not found" + link home
+        Home.jsx               ← single-screen portal landing: photo bg, serif headline, 3 frosted step cards, login card (CPGRAMS-inspired)
+        Issues.jsx             ← grid + status/type filters + "Near me" Haversine distance sort
+        IssueDetail.jsx        ← photos, Google Maps link, timeline (synthesized "Reported" entry from created_at), staff panel
+        MyIssues.jsx, MyTasks.jsx, ReportIssue.jsx (GPS + photo w/ preview), Login.jsx, Register.jsx (auto-login after), NotFound.jsx
 ```
 
 Local path on his Windows machine: `C:\Users\adity\Desktop\civic fix\` (the space in the name means paths need quotes in the terminal).
@@ -201,6 +214,7 @@ Base URL: `http://localhost:5000`. Protected routes need the header `Authorizati
 | GET | `/api/issues/:id` | Public | 404 if not found |
 | GET | `/api/issues/:id/history` | Public | Timeline from `issue_updates`, JOIN users for updater name, oldest first |
 | PATCH | `/api/issues/:id/status` | `verifyToken` + `requireRole('EMPLOYEE','ADMIN')` + rules below | Updates `issues.status` + inserts `issue_updates` in one **transaction**; `updated_by = req.user.id` |
+| PATCH | `/api/issues/:id/priority` | `verifyToken` + `requireRole('ADMIN')` | Added 16 Nov 2026. Validates LOW/MEDIUM/HIGH/CRITICAL → else **400**; 404 if issue missing. **Not yet Postman-tested**; gets its UI in Phase 6 |
 | POST | `/api/issues/:id/assign` | `verifyToken` + `requireRole('ADMIN')` + rules below | One **transaction**: insert `assignments`, set `status = 'ASSIGNED'` and `assigned_to`, insert `issue_updates` (comment `"Assigned to <name>"`) |
 | POST | `/api/issues/:id/image` | `verifyToken` + `requireIssueOwnerOrStaff` + `upload.single('image')` | multipart/form-data, field `image`. Citizen → `image_url`; EMPLOYEE/ADMIN → `resolved_image_url`. The response key is `image_url` in both cases |
 
@@ -298,14 +312,15 @@ Test uploads have created extra images in Cloudinary (`civicfix/` folder). They 
 
 ## 10. Current status / where we are
 
-**Phase: Phase 0 and Phase 1 done and pushed (14 Oct 2026). Next: design references, then Phase 2 (Auth).**
+**Phase: Phases 0–5 done and pushed (16 Nov 2026). Next: Phase 6 (Admin), then Phase 7 (map + deploy).**
 
-### Where we stopped (14 Oct 2026)
-- Phase 0 ✅ Tailwind set up, demo removed, backend CORS (`app.use(cors({ origin: 'http://localhost:5173' }))` right after `const app = express();`). Commits `8db2f9f`, `3ae1c15`.
-- Phase 1 ✅ React Router, Navbar, placeholder pages, 404 route. Commit `30857f8`.
-- Small formatting nits left from review: `main.jsx` `<App />` indentation, `App.jsx` extra blank lines and over-indented `*` route (fix with Shift + Alt + F). Semicolons: keep them (backend style); Vite-generated files lack them. Prettier could be added later.
-- **Next session starts with:** Aditya shares design screenshots from sites he likes (with what he likes about each), ideally both a mobile citizen screen and an admin dashboard. Claude then proposes 2–3 directions based on them; he picks one; then Phase 2.
-- Also settle the "fix it" rule (see Working agreement).
+### Where we stopped (16 Nov 2026)
+- Phases 2–5 built by Claude directly under the new frontend agreement (see Working agreement): auth (AuthContext + localStorage, shared LoginForm with Citizen/Employee/Admin role tabs + post-login role check), portal-style single-screen landing (photo background, 3 frosted step cards, login card), All Issues (status/type filters + "Near me" Haversine sort with distances on cards), Issue detail (photos, map link, timeline, employee staff panel), My Issues, Report Issue (GPS + Cloudinary upload), My Tasks, full **dark mode** (navbar toggle, `.dark` class on `<html>`, localStorage, system default), polish (compressed images, custom favicon, skeleton loaders, hover/fade animations).
+- Backend addition: `PATCH /api/issues/:id/priority` (admin, validates LOW/MEDIUM/HIGH/CRITICAL). **Not yet Postman-tested.**
+- Design settled: light "government portal" style (CPGRAMS layout inspiration), Cormorant Garamond serif headings + Inter body, stone palette, tracked-out uppercase labels, photo backgrounds on Home (`hero.jpg`) and Report (`report-bg.jpg`), plus full dark variant.
+- Commits pushed: `9b1127a` (priority route + PROJECT_HANDOFF.md), `9b5b4ba` (Phases 2–4), `a196d48` (Phase 5 + dark mode + polish), plus the README/CLAUDE.md refresh after that.
+- Citizen demo flow for recruiters: land → role tabs → login → browse (skeletons, filters, Near me) → issue 4 detail (before/after photos + timeline) → report an issue with GPS + photo → logout → employee login → My Tasks → staff panel.
+- **Next session starts with:** Phase 6 Admin — dashboard (counts + filters), verify button, assign panel (employee dropdown from `GET /api/users`), priority UI (and that first Postman/UI test of the priority route). Then Phase 7: map view, deployment (Vercel + cloud MySQL; add the Vercel URL to CORS).
 
 Frontend planning (agreed): **one React app** with role-based navbar/pages, not separate apps per role.
 
@@ -319,7 +334,7 @@ Frontend planning (agreed): **one React app** with role-based navbar/pages, not 
 The **Issue detail page is shared by all roles**, with extra panels depending on the role.
 
 ### Frontend plan (agreed 13 Oct 2026): phases, one working screen at a time
-Every phase ends with something clickable in the browser and a commit. **Phases 0 and 1 are done.**
+Every phase ends with something clickable in the browser and a commit. **Phases 0–5 are done; 6 and 7 remain.**
 
 | # | Phase | What gets built | React concepts introduced |
 |---|---|---|---|
@@ -332,9 +347,9 @@ Every phase ends with something clickable in the browser and a commit. **Phases 
 | 6 | **Admin** | Dashboard (filters, counts), verify + assign panel (employee dropdown from `GET /api/users` filtered to EMPLOYEE). **Add the priority route here** (Gap #3, deferred on purpose): `PATCH /api/issues/:id/priority`, admin only, validate LOW/MEDIUM/HIGH/CRITICAL | `.filter()`, API-driven dropdowns |
 | 7 | **Polish** | Design pass, map view (Mapbox or Google Maps, undecided), deployment | — |
 
-**Backend CORS:** done (Phase 0). When deploying, add the Vercel URL to the allowed `origin`. CORS has not been exercised by a real `fetch` yet; the first test is the login form in Phase 2.
+**Backend CORS:** done and confirmed working with real browser `fetch` (Phase 2 login). When deploying, add the Vercel URL to the allowed `origin`.
 
-**Design:** Aditya will share reference screenshots first; then show 2–3 directions based on them, **before Phase 2**.
+**Design:** settled (16 Nov 2026) — see "Where we stopped". Keep new screens consistent with the portal style and include dark variants for everything.
 
 ### UI/design approach (agreed)
 - Show 2–3 reference directions instead of designing from a blank slate. He decides color (civic blue/green), layout (cards vs tables) and tone.
@@ -345,7 +360,8 @@ Every phase ends with something clickable in the browser and a commit. **Phases 
 
 ## 11. Backlog / tech debt (flag when relevant, don't force now)
 
-- Priority route (see step 8 above).
+- Priority route: backend **done** (16 Nov 2026); still needs a Postman test and its admin UI (Phase 6).
+- Compress any future background photos the same way (PowerShell System.Drawing resize to 1920w, JPEG quality ~78).
 - Add `backend/.env.example` with dummy values.
 - Admin endpoint to change user roles (instead of manual SQL).
 - Input validation layer for `POST /api/issues` (allowed `type` values, lat/lng ranges, required fields).
@@ -373,3 +389,4 @@ Every phase ends with something clickable in the browser and a commit. **Phases 
 - VARCHAR vs ENUM reasoning; current state vs audit trail.
 - JWT stateless trade-off (role changes need a re-login).
 - Prevented privilege escalation on registration.
+- Frontend (from Phases 2–5): localStorage vs httpOnly-cookie trade-off for the JWT; UI hides actions but the backend enforces them (My Issues link vs `/mine` token check); two fetch helpers because FormData must not send `Content-Type: application/json`; Haversine distance sort client-side now, same formula in SQL when data grows; dark mode via a `.dark` class with a Tailwind custom variant; shared components (LoginForm used on landing + /login) so there is one source of truth.

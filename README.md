@@ -9,7 +9,7 @@ CivicFix enables citizens to report infrastructure concerns such as road damage,
 ![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat&logo=mysql&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-000000?style=flat&logo=jsonwebtokens&logoColor=white)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=flat&logo=cloudinary&logoColor=white)
-![React](https://img.shields.io/badge/React-in%20progress-61DAFB?style=flat&logo=react&logoColor=black)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
 
@@ -27,7 +27,7 @@ CivicFix is built around three ideas:
 2. **Role-based workflow.** Citizens report, administrators verify and assign, and employees resolve. Each role can only perform the actions it is responsible for, and every issue moves through a fixed lifecycle.
 3. **Full transparency.** Every status change and assignment is stored in an audit trail recording who made it, when, and why, and citizens can view that timeline at any time.
 
-> **Project status:** The backend (REST API, authentication, database and image storage) is complete and tested. The React frontend is in active development: the application shell, navigation and styling system are in place, and the user-facing screens are being built next.
+> **Project status:** The backend (REST API, authentication, database and image storage) is complete and tested. The citizen and employee experiences of the React frontend are complete: authentication with role-based navigation, reporting with GPS and photo upload, browsing with filters and distance-based sorting, full issue timelines, the employee resolution workflow, and light and dark themes. The admin dashboard, map view and deployment are next.
 
 ---
 
@@ -38,6 +38,7 @@ CivicFix is built around three ideas:
 - Report an issue with a category, description, GPS location and photo
 - View a personal list of every issue they have reported
 - Track the current status and complete history of any issue
+- Browse all community reports, filter them by status and type, and sort them by distance from their own location
 
 **For municipal employees**
 - View the list of issues currently assigned to them
@@ -59,8 +60,8 @@ CivicFix is built around three ideas:
 | Database | MySQL |
 | Authentication | JSON Web Tokens, bcrypt |
 | Image storage | Cloudinary, Multer |
-| Frontend | React, Vite, React Router *(in progress)* |
-| Styling | Tailwind CSS |
+| Frontend | React, Vite, React Router, Context API |
+| Styling | Tailwind CSS, light and dark themes |
 | Maps | Mapbox or Google Maps *(planned)* |
 
 ---
@@ -190,10 +191,11 @@ Security was treated as a core requirement rather than an afterthought.
 - [x] Personal issue lists for citizens and task lists for employees
 - [x] Cloud image uploads with separate before and after photos
 - [x] Frontend foundation: React, Vite, Tailwind CSS and routing
-- [ ] Authentication screens and role-based navigation
-- [ ] Citizen reporting and issue tracking screens
-- [ ] Employee task screens and municipal admin dashboard
-- [ ] Issue priority management
+- [x] Authentication screens with role selection and role-based navigation
+- [x] Citizen reporting and tracking screens, with filters and distance-based sorting
+- [x] Employee task list and resolution workflow with proof-of-work photos
+- [x] Light and dark themes
+- [ ] Municipal admin dashboard (verify, assign, prioritize)
 - [ ] Map integration
 - [ ] Admin tools for managing user roles
 - [ ] Automated tests and input validation layer
